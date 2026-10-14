@@ -89,5 +89,23 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Use `game:GetService()` to access services — never index `game` directly (e.g. no `game.Workspace`).
 - Avoid `Instance.new()` with a parent argument — set properties first, then set Parent last for performance.
 
-### Executing code in Roblox Studio
-When building or testing, execute code directly in Studio via the official Roblox MCP server configured in `.mcp.json` (server name: `Roblox_Studio`). Use its tools to run Lua, read Studio state, and check errors — do not simulate or guess Studio behavior locally. Studio must be open and the plugin connected before calling any MCP tool.
+## 7. Roblox Studio — Dev HTTP Route (enterprise fallback)
+
+On this machine MCP server registration is blocked by enterprise policy, so the `execute_lua` / `read_studio_state` / `get_errors` tools are not available via the normal MCP path.
+
+**Only use this when the user explicitly asks to run or test something in Roblox Studio.** The user starts the server themselves (`RBXMCP_DEV=1` must be set).
+
+1. Check the server is up and the plugin is connected:
+   ```
+   GET http://127.0.0.1:30700/v1/health
+   ```
+   Only proceed if `pluginConnected: true`.
+
+2. Execute Lua via the dev route:
+   ```
+   POST http://127.0.0.1:30700/v1/_dev/enqueue
+   Content-Type: application/json
+   {"code": "<lua code here>"}
+   ```
+   The response contains the result synchronously (`ok`, `output`, `returnValues`, `error`).
+
